@@ -37,28 +37,30 @@ public class RepositoryAspect {
 
   @Around("execution(* com.enterprise.aigateway.feature.*.repository.*.*(..))")
   public Object logExecutionTime(ProceedingJoinPoint joinPoint) throws Throwable {
-    Object result = joinPoint.proceed();
-
-    // Xử lý riêng cho kiểu Mono (1 kết quả trả về bất đồng bộ trong Reactor)
-    if (result instanceof Mono<?> mono) {
-      return wrapMono(joinPoint, mono);
-    }
-    // Xử lý riêng cho kiểu Flux (Nhiều kết quả trả về bất đồng bộ trong Reactor)
-    if (result instanceof Flux<?> flux) {
-      return wrapFlux(joinPoint, flux);
-    }
-    // Xử lý riêng cho các Publisher khác của Reactive Streams
-    if (result instanceof Publisher<?> publisher) {
-      return wrapPublisher(joinPoint, publisher);
-    }
-
-    // Xử lý cho các hàm đồng bộ bình thường không dùng Reactive
     long start = System.nanoTime();
     try {
-      return result;
-    } finally {
-      // Ghi lại thời gian thực thi sau khi hoàn thành
+      Object result = joinPoint.proceed();
+
+      // Xử lý riêng cho kiểu Mono (1 kết quả trả về bất đồng bộ trong Reactor)
+      if (result instanceof Mono<?> mono) {
+        return wrapMono(joinPoint, mono);
+      }
+      // Xử lý riêng cho kiểu Flux (Nhiều kết quả trả về bất đồng bộ trong Reactor)
+      if (result instanceof Flux<?> flux) {
+        return wrapFlux(joinPoint, flux);
+      }
+      // Xử lý riêng cho các Publisher khác của Reactive Streams
+      if (result instanceof Publisher<?> publisher) {
+        return wrapPublisher(joinPoint, publisher);
+      }
+
+      // Xử lý cho các hàm đồng bộ bình thường không dùng Reactive
       recordTimer(joinPoint, System.nanoTime() - start);
+      return result;
+    } catch (Throwable ex) {
+      // Ghi lại thời gian thực thi nếu hàm đồng bộ (hoặc quá trình assembly) bị lỗi
+      recordTimer(joinPoint, System.nanoTime() - start);
+      throw ex;
     }
   }
 

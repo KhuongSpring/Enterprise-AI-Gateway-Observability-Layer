@@ -58,7 +58,7 @@ public class AiResponseTransformService {
           totalTokens = geminiRes.getUsageMetadata().getTotalTokenCount();
         }
 
-        // Tạo Tạo dữ liệu chuẩn (AiGatewayResponse)
+        // Tạo dữ liệu chuẩn (AiGatewayResponse)
         AiGatewayResponse unified = AiGatewayResponse.builder().id(geminiRes.getResponseId())
             .model(geminiRes.getModelVersion()).content(content).usage(usage).build();
 

@@ -46,11 +46,11 @@ public final class ErrorMessage {
     public static final String ERR_OPENAI_MODEL_NOT_BLANK =
         "exception.gateway.openai.model.not_blank";
     public static final String ERR_OPENAI_MESSAGES_NOT_EMPTY =
-        "exception.gateway.openai.messages.not.empty";
+        "exception.gateway.openai.messages.not_empty";
     public static final String ERR_OPENAI_MESSAGES_ROLE_NOT_BLANK =
-        "exception.gateway.openai.messages.role.not.blank";
+        "exception.gateway.openai.messages.role.not_blank";
     public static final String ERR_OPENAI_MESSAGES_CONTENT_NOT_BLANK =
-        "exception.gateway.openai.messages.content.not.blank";
+        "exception.gateway.openai.messages.content.not_blank";
 
     // --- Lỗi liên quan đến dự phòng (Fallback) khi có sự cố hệ thống/mạng ---
     public static final String ERR_FALLBACK_CIRCUIT_BREAKER_OPEN =
