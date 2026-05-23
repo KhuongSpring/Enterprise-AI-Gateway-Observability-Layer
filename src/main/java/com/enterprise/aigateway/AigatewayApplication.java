@@ -1,0 +1,13 @@
+package com.enterprise.aigateway;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+@SpringBootApplication
+public class AigatewayApplication {
+
+	public static void main(String[] args) {
+		SpringApplication.run(AigatewayApplication.class, args);
+	}
+
+}
