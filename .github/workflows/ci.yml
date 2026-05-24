@@ -13,6 +13,13 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      SPRING_SERVER_PORT: 8080
+      QUERY_LIMIT_WARNING_MS: 300
+      MYSQL_DATABASE: aigateway
+      SPRING_REDIS_HOST: localhost
+      SPRING_REDIS_PORT: 6379
+      REDIS_PASSWORD: 
 
     steps:
     - name: Checkout code
