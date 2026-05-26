@@ -8,35 +8,35 @@ import org.springframework.http.HttpStatus;
 @Setter
 public class NotFoundException extends RuntimeException {
 
-  private String message;
+  private Object errMessage;
 
   private HttpStatus status;
 
   private String[] params;
 
-  public NotFoundException(String message) {
-    super(message);
+  public NotFoundException(String errMessage) {
+    super(errMessage);
     this.status = HttpStatus.NOT_FOUND;
-    this.message = message;
+    this.errMessage = errMessage;
   }
 
-  public NotFoundException(HttpStatus status, String message) {
-    super(message);
+  public NotFoundException(HttpStatus status, Object errMessage) {
+    super(String.valueOf(errMessage));
     this.status = status;
-    this.message = message;
+    this.errMessage = errMessage;
   }
 
-  public NotFoundException(String message, String[] params) {
-    super(message);
+  public NotFoundException(String errMessage, String[] params) {
+    super(errMessage);
     this.status = HttpStatus.NOT_FOUND;
-    this.message = message;
+    this.errMessage = errMessage;
     this.params = params;
   }
 
-  public NotFoundException(HttpStatus status, String message, String[] params) {
-    super(message);
+  public NotFoundException(HttpStatus status, Object errMessage, String[] params) {
+    super(String.valueOf(errMessage));
     this.status = status;
-    this.message = message;
+    this.errMessage = errMessage;
     this.params = params;
   }
 

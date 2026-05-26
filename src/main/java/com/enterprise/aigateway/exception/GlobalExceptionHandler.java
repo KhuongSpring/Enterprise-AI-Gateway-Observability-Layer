@@ -8,7 +8,7 @@ import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.validation.BindException;
+import org.springframework.web.bind.support.WebExchangeBindException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -46,9 +46,9 @@ public class GlobalExceptionHandler {
   }
 
   // Error validate for body
-  @ExceptionHandler(BindException.class)
+  @ExceptionHandler(WebExchangeBindException.class)
   @ResponseStatus(HttpStatus.BAD_REQUEST)
-  public ResponseEntity<RestData<Map<String, String>>> handleValidException(BindException ex) {
+  public ResponseEntity<RestData<Map<String, String>>> handleValidException(WebExchangeBindException ex) {
     Map<String, String> result = new HashMap<>();
     ex.getBindingResult().getAllErrors().forEach((error) -> {
       String fieldName = ((FieldError) error).getField();
@@ -84,7 +84,26 @@ public class GlobalExceptionHandler {
 
   @ExceptionHandler(NotFoundException.class)
   public ResponseEntity<RestData<String>> handlerNotFoundException(NotFoundException ex) {
-    String message = messageSource.getMessage(ex.getMessage(), ex.getParams(), LocaleContextHolder.getLocale());
+    String message = ex.getMessage();
+    try {
+      message = messageSource.getMessage(Objects.requireNonNull(message), ex.getParams(),
+          LocaleContextHolder.getLocale());
+    } catch (Exception e) {
+      // Keep original message if it's not a translation key
+    }
+    log.error(message, ex);
+    return VsResponseUtil.error(ex.getStatus(), message);
+  }
+
+  @ExceptionHandler(ForbiddenException.class)
+  public ResponseEntity<RestData<String>> handlerForbiddenException(ForbiddenException ex) {
+    String message = ex.getMessage();
+    try {
+      message = messageSource.getMessage(Objects.requireNonNull(message), ex.getParams(),
+          LocaleContextHolder.getLocale());
+    } catch (Exception e) {
+      // Keep original message if it's not a translation key
+    }
     log.error(message, ex);
     return VsResponseUtil.error(ex.getStatus(), message);
   }

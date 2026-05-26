@@ -8,35 +8,35 @@ import org.springframework.http.HttpStatus;
 @Setter
 public class ForbiddenException extends RuntimeException {
 
-  private String message;
+  private Object errMessage;
 
   private HttpStatus status;
 
   private String[] params;
 
-  public ForbiddenException(String message) {
-    super(message);
+  public ForbiddenException(String errMessage) {
+    super(errMessage);
     this.status = HttpStatus.FORBIDDEN;
-    this.message = message;
+    this.errMessage = errMessage;
   }
 
-  public ForbiddenException(HttpStatus status, String message) {
-    super(message);
+  public ForbiddenException(HttpStatus status, Object errMessage) {
+    super(String.valueOf(errMessage));
     this.status = status;
-    this.message = message;
+    this.errMessage = errMessage;
   }
 
-  public ForbiddenException(String message, String[] params) {
-    super(message);
+  public ForbiddenException(String errMessage, String[] params) {
+    super(errMessage);
     this.status = HttpStatus.FORBIDDEN;
-    this.message = message;
+    this.errMessage = errMessage;
     this.params = params;
   }
 
-  public ForbiddenException(HttpStatus status, String message, String[] params) {
-    super(message);
+  public ForbiddenException(HttpStatus status, Object errMessage, String[] params) {
+    super(String.valueOf(errMessage));
     this.status = status;
-    this.message = message;
+    this.errMessage = errMessage;
     this.params = params;
   }
 
