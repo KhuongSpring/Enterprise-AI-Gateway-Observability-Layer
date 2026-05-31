@@ -16,12 +16,10 @@ import reactor.core.publisher.Mono;
 public class FallbackController {
 
   @RequestMapping("/llm")
-  public Mono<ResponseEntity<RestData<Object>>> llmFallback() {
+  public Mono<ResponseEntity<RestData<String>>> llmFallback() {
     log.error("Circuit Breaker OPEN: Dịch vụ LLM (OpenAI/Gemini) đang gặp sự cố hoặc quá tải.");
 
-    RestData<Object> response = new RestData<>();
-    response.setMessage("Dịch vụ AI hiện đang quá tải hoặc gặp sự cố. Vui lòng thử lại sau ít phút.");
-
-    return Mono.just(VsResponseUtil.error(HttpStatus.SERVICE_UNAVAILABLE, response));
+    return Mono.just(VsResponseUtil.error(HttpStatus.SERVICE_UNAVAILABLE,
+        "Dịch vụ AI hiện đang quá tải hoặc gặp sự cố. Vui lòng thử lại sau ít phút."));
   }
 }

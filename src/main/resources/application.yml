@@ -15,7 +15,7 @@ spring:
     redis:
       host: ${SPRING_REDIS_HOST:localhost}
       port: ${SPRING_REDIS_PORT:6380}
-      password: ${SPRING_REDIS_PASSWORD:khuong123}
+      password: ${SPRING_REDIS_PASSWORD:}
       timeout: 2000ms
       # Redis Connection Optimization
       lettuce:
@@ -34,7 +34,9 @@ spring:
           predicates:
             - Path=/v1/openai/**
           filters:
-            - StripPrefix=2
+            - RewritePath=/v1/openai/(?<segment>.*), /v1/$\{segment}
+            - RemoveRequestHeader=Accept-Encoding
+            - CacheRequestBody
             - name: CircuitBreaker
               args:
                 name: openaiCircuitBreaker
@@ -46,7 +48,12 @@ spring:
           predicates:
             - Path=/v1/gemini/**
           filters:
-            - StripPrefix=2
+            - RewritePath=/v1/gemini/(?<segment>.*), /v1/$\{segment}
+            - RemoveRequestHeader=Accept-Encoding
+            - name: CircuitBreaker
+              args:
+                name: geminiCircuitBreaker
+                fallbackUri: forward:/fallback/llm
             
         # Route dành cho Anthropic (Claude)
         - id: anthropic_route
@@ -54,7 +61,12 @@ spring:
           predicates:
             - Path=/v1/anthropic/**
           filters:
-            - StripPrefix=2
+            - RewritePath=/v1/anthropic/(?<segment>.*), /v1/$\{segment}
+            - RemoveRequestHeader=Accept-Encoding
+            - name: CircuitBreaker
+              args:
+                name: anthropicCircuitBreaker
+                fallbackUri: forward:/fallback/llm
 
 # APP
 application:
@@ -74,7 +86,7 @@ management:
   endpoints:
     web:
       exposure:
-        include: "gateway" # http://localhost:8080/actuator/gateway/routes
+        include: "health,info,prometheus,gateway" # http://localhost:8080/actuator/gateway/routes
   endpoint:
     gateway:
       enabled: true
