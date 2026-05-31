@@ -1,0 +1,124 @@
+spring:
+  application:
+    name: aigateway
+  config:
+    import: "optional:file:.env[.properties]"
+    
+  # DATABASE (R2DBC)
+  r2dbc:
+    url: ${SPRING_R2DBC_URL}
+    username: ${SPRING_R2DBC_USERNAME}
+    password: ${SPRING_R2DBC_PASSWORD}
+    
+  # Redis Properties
+  data:
+    redis:
+      host: ${SPRING_REDIS_HOST:localhost}
+      port: ${SPRING_REDIS_PORT:6380}
+      password: ${SPRING_REDIS_PASSWORD:}
+      timeout: 2000ms
+      # Redis Connection Optimization
+      lettuce:
+        pool:
+          max-active: 8
+          max-idle: 8
+          min-idle: 2
+
+  # Config Multi-Provider Routing
+  cloud:
+    gateway:
+      routes:
+        # Route dành cho OpenAI
+        - id: openai_route
+          uri: https://api.openai.com
+          predicates:
+            - Path=/v1/openai/**
+          filters:
+            - RewritePath=/v1/openai/(?<segment>.*), /v1/$\{segment}
+            - RemoveRequestHeader=Accept-Encoding
+            - CacheRequestBody
+            - name: CircuitBreaker
+              args:
+                name: openaiCircuitBreaker
+                fallbackUri: forward:/fallback/llm
+            
+        # Route dành cho Google Gemini
+        - id: gemini_route
+          uri: https://generativelanguage.googleapis.com
+          predicates:
+            - Path=/v1/gemini/**
+          filters:
+            - RewritePath=/v1/gemini/(?<segment>.*), /v1/$\{segment}
+            - RemoveRequestHeader=Accept-Encoding
+            - name: CircuitBreaker
+              args:
+                name: geminiCircuitBreaker
+                fallbackUri: forward:/fallback/llm
+            
+        # Route dành cho Anthropic (Claude)
+        - id: anthropic_route
+          uri: https://api.anthropic.com
+          predicates:
+            - Path=/v1/anthropic/**
+          filters:
+            - RewritePath=/v1/anthropic/(?<segment>.*), /v1/$\{segment}
+            - RemoveRequestHeader=Accept-Encoding
+            - name: CircuitBreaker
+              args:
+                name: anthropicCircuitBreaker
+                fallbackUri: forward:/fallback/llm
+
+# APP
+application:
+  repository:
+    query-limit-warning-ms: ${QUERY_LIMIT_WARNING_MS:1000}
+
+server:
+  port: ${SPRING_SERVER_PORT:8080}
+  servlet:
+    encoding:
+      charset: UTF-8
+      enabled: true
+      force: true
+
+# Prometheus
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "health,info,prometheus,gateway" # http://localhost:8080/actuator/gateway/routes
+  endpoint:
+    gateway:
+      enabled: true
+    prometheus:
+      enabled: true
+  prometheus:
+    metrics:
+      export:
+        enabled: true
+  metrics:
+    distribution:
+      percentiles-histogram:
+        http:
+          server:
+            requests: true
+
+resilience4j:
+  circuitbreaker:
+    configs:
+      default:
+        registerHealthIndicator: true
+        slidingWindowSize: 10 # Tính toán tỷ lệ lỗi trên 10 request gần nhất
+        minimumNumberOfCalls: 5 # Cần ít nhất 5 request để bắt đầu tính toán
+        permittedNumberOfCallsInHalfOpenState: 3 # Cho phép 3 request thử lại khi mạch đóng hờ (Half-Open)
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+        waitDurationInOpenState: 10s # Thời gian ngắt mạch (chờ) trước khi thử lại
+        failureRateThreshold: 50 # Nếu 50% request thất bại -> Ngắt mạch (Open)
+    instances:
+      openaiCircuitBreaker:
+        baseConfig: default
+  # Tùy chọn cấu hình Timeout
+  timelimiter:
+    configs:
+      default:
+        timeoutDuration: 15s # Nếu gọi LLM quá 15s không phản hồi -> Tính là lỗi để ngắt mạch
