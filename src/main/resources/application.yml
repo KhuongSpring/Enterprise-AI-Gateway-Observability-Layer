@@ -35,6 +35,10 @@ spring:
             - Path=/v1/openai/**
           filters:
             - StripPrefix=2
+            - name: CircuitBreaker
+              args:
+                name: openaiCircuitBreaker
+                fallbackUri: forward:/fallback/llm
             
         # Route dành cho Google Gemini
         - id: gemini_route
@@ -86,3 +90,23 @@ management:
         http:
           server:
             requests: true
+
+resilience4j:
+  circuitbreaker:
+    configs:
+      default:
+        registerHealthIndicator: true
+        slidingWindowSize: 10 # Tính toán tỷ lệ lỗi trên 10 request gần nhất
+        minimumNumberOfCalls: 5 # Cần ít nhất 5 request để bắt đầu tính toán
+        permittedNumberOfCallsInHalfOpenState: 3 # Cho phép 3 request thử lại khi mạch đóng hờ (Half-Open)
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+        waitDurationInOpenState: 10s # Thời gian ngắt mạch (chờ) trước khi thử lại
+        failureRateThreshold: 50 # Nếu 50% request thất bại -> Ngắt mạch (Open)
+    instances:
+      openaiCircuitBreaker:
+        baseConfig: default
+  # Tùy chọn cấu hình Timeout
+  timelimiter:
+    configs:
+      default:
+        timeoutDuration: 15s # Nếu gọi LLM quá 15s không phản hồi -> Tính là lỗi để ngắt mạch
