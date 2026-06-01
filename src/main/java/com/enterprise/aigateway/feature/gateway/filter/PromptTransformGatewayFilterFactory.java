@@ -17,6 +17,9 @@ import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import com.enterprise.aigateway.constant.CommonConstant;
+import com.enterprise.aigateway.constant.ErrorMessage;
+import com.enterprise.aigateway.constant.LogConstant;
 import com.enterprise.aigateway.feature.gateway.dto.request.AiGatewayRequest;
 import com.enterprise.aigateway.feature.gateway.service.AiPayloadTransformService;
 import com.enterprise.aigateway.feature.gateway.service.AiRoutingService;
@@ -46,19 +49,21 @@ public class PromptTransformGatewayFilterFactory extends AbstractGatewayFilterFa
       return ServerWebExchangeUtils.cacheRequestBody(exchange, (serverHttpRequest) -> {
         DataBuffer cachedBody = exchange.getAttribute(ServerWebExchangeUtils.CACHED_REQUEST_BODY_ATTR);
         if (cachedBody == null) {
-          return Mono.error(new ResponseStatusException(HttpStatus.BAD_REQUEST, "Request body is empty"));
+          return Mono
+              .error(new ResponseStatusException(HttpStatus.BAD_REQUEST, ErrorMessage.ERR_REQUEST_BODY_IS_EMPTY));
         }
 
         try {
           // 1. Đọc Body JSON
           byte[] bytes = new byte[cachedBody.readableByteCount()];
           cachedBody.read(bytes);
-          cachedBody.readPosition(0); // Khôi phục con trỏ nếu cần thiết ở nơi khác
+          cachedBody.readPosition(0);
 
           AiGatewayRequest inRequest = objectMapper.readValue(bytes, AiGatewayRequest.class);
 
           if (inRequest == null || inRequest.getModel() == null || inRequest.getPrompt() == null) {
-            return Mono.error(new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid request body structure"));
+            return Mono
+                .error(new ResponseStatusException(HttpStatus.BAD_REQUEST, ErrorMessage.ERR_REQUEST_BODY_IS_INVALID));
           }
 
           // 2. Chuyển cho AiRoutingService xử lý bẻ lái (URL & Header)
@@ -66,11 +71,13 @@ public class PromptTransformGatewayFilterFactory extends AbstractGatewayFilterFa
 
           // Ghi lại URL đích vào thuộc tính trung gian để DynamicRoutingFilter (chạy sau)
           // ghi đè lại
-          exchange.getAttributes().put("TARGET_AI_URI", routeConfig.getUri());
+          exchange.getAttributes().put(CommonConstant.TARGET_AI_URI, routeConfig.getUri());
 
           // Ghi lại loại Provider để AiResponseTransformGatewayFilterFactory nhận diện
-          String aiProvider = inRequest.getModel().toLowerCase().startsWith("gemini") ? "gemini" : "openai";
-          exchange.getAttributes().put("AI_PROVIDER", aiProvider);
+          String aiProvider = inRequest.getModel().toLowerCase().startsWith(CommonConstant.GEMINI)
+              ? CommonConstant.GEMINI
+              : CommonConstant.OPENAI;
+          exchange.getAttributes().put(CommonConstant.AI_PROVIDER, aiProvider);
 
           // 3. Chuyển cho AiPayloadTransform xử lý biến đổi JSON (Bất đồng bộ do check
           // Rate Limit)
@@ -109,8 +116,9 @@ public class PromptTransformGatewayFilterFactory extends AbstractGatewayFilterFa
               });
 
         } catch (Exception e) {
-          log.error("Lỗi khi xử lý Request Body", e);
-          return Mono.error(new ResponseStatusException(HttpStatus.BAD_REQUEST, "Failed to parse JSON body"));
+          log.error(LogConstant.LOG_REQUEST_BODY_PARSE_FAIL, e);
+          return Mono
+              .error(new ResponseStatusException(HttpStatus.BAD_REQUEST, ErrorMessage.ERR_REQUEST_BODY_PARSE_FAIL));
         }
       });
     };
