@@ -28,44 +28,17 @@ spring:
   cloud:
     gateway:
       routes:
-        # Route dành cho OpenAI
-        - id: openai_route
-          uri: https://api.openai.com
+        - id: unified_ai_route
+          uri: http://localhost
           predicates:
-            - Path=/v1/openai/**
+            - Path=/v1/ai/chat
           filters:
-            - RewritePath=/v1/openai/(?<segment>.*), /v1/$\{segment}
             - RemoveRequestHeader=Accept-Encoding
-            - CacheRequestBody
+            - PromptTransform
+            - AiResponseTransform
             - name: CircuitBreaker
               args:
-                name: openaiCircuitBreaker
-                fallbackUri: forward:/fallback/llm
-            
-        # Route dành cho Google Gemini
-        - id: gemini_route
-          uri: https://generativelanguage.googleapis.com
-          predicates:
-            - Path=/v1/gemini/**
-          filters:
-            - RewritePath=/v1/gemini/(?<segment>.*), /v1/$\{segment}
-            - RemoveRequestHeader=Accept-Encoding
-            - name: CircuitBreaker
-              args:
-                name: geminiCircuitBreaker
-                fallbackUri: forward:/fallback/llm
-            
-        # Route dành cho Anthropic (Claude)
-        - id: anthropic_route
-          uri: https://api.anthropic.com
-          predicates:
-            - Path=/v1/anthropic/**
-          filters:
-            - RewritePath=/v1/anthropic/(?<segment>.*), /v1/$\{segment}
-            - RemoveRequestHeader=Accept-Encoding
-            - name: CircuitBreaker
-              args:
-                name: anthropicCircuitBreaker
+                name: aiCircuitBreaker
                 fallbackUri: forward:/fallback/llm
 
 # APP
@@ -115,7 +88,7 @@ resilience4j:
         waitDurationInOpenState: 10s # Thời gian ngắt mạch (chờ) trước khi thử lại
         failureRateThreshold: 50 # Nếu 50% request thất bại -> Ngắt mạch (Open)
     instances:
-      openaiCircuitBreaker:
+      aiCircuitBreaker:
         baseConfig: default
   # Tùy chọn cấu hình Timeout
   timelimiter:
