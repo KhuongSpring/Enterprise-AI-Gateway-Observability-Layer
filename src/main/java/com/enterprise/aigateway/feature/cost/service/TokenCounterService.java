@@ -20,6 +20,7 @@ public class TokenCounterService {
 
     int baseTokens = encoding.countTokensOrdinary(text);
 
+    // Overhead for single user message in chat completion API (approximate)
     int chatMessageOverhead = 7;
 
     return baseTokens + chatMessageOverhead;

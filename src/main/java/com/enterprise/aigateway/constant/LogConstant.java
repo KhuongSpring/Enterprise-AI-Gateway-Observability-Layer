@@ -7,5 +7,5 @@ public class LogConstant {
       "Lỗi khi chuẩn hóa response của provider {}: {}";
   public static final String LOG_REQUEST_BODY_PARSE_FAIL = "Lỗi khi parse request body: {}";
   public static final String LOG_USER_EXCEEDED_MAX_PROMPT_TOKENS =
-      "User {} exceeded max prompt tokens. Cost: {}, Max: {}";
+      "User {} đã vượt quá số token tối đa cho prompt. Cost: {}, Max: {}";
 }
