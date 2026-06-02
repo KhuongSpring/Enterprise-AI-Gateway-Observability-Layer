@@ -38,8 +38,8 @@ public class GlobalExceptionHandler {
     Map<String, String> result = new LinkedHashMap<>();
     ex.getConstraintViolations().forEach((error) -> {
       String fieldName = ((PathImpl) error.getPropertyPath()).getLeafNode().getName();
-      String errorMessage = messageSource.getMessage(Objects.requireNonNull(error.getMessage()), null,
-          LocaleContextHolder.getLocale());
+      String errorMessage = messageSource.getMessage(Objects.requireNonNull(error.getMessage()),
+          null, LocaleContextHolder.getLocale());
       result.put(fieldName, errorMessage);
     });
     return VsResponseUtil.error(HttpStatus.BAD_REQUEST, result);
@@ -48,12 +48,13 @@ public class GlobalExceptionHandler {
   // Error validate for body
   @ExceptionHandler(WebExchangeBindException.class)
   @ResponseStatus(HttpStatus.BAD_REQUEST)
-  public ResponseEntity<RestData<Map<String, String>>> handleValidException(WebExchangeBindException ex) {
+  public ResponseEntity<RestData<Map<String, String>>> handleValidException(
+      WebExchangeBindException ex) {
     Map<String, String> result = new HashMap<>();
     ex.getBindingResult().getAllErrors().forEach((error) -> {
       String fieldName = ((FieldError) error).getField();
-      String errorMessage = messageSource.getMessage(Objects.requireNonNull(error.getDefaultMessage()), null,
-          LocaleContextHolder.getLocale());
+      String errorMessage = messageSource.getMessage(
+          Objects.requireNonNull(error.getDefaultMessage()), null, LocaleContextHolder.getLocale());
       result.put(fieldName, errorMessage);
     });
     return VsResponseUtil.error(HttpStatus.BAD_REQUEST, result);

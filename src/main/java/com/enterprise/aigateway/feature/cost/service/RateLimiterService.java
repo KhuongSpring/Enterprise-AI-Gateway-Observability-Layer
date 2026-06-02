@@ -10,23 +10,18 @@ import reactor.core.publisher.Mono;
 public class RateLimiterService {
 
   private final ReactiveRedisTemplate<String, Object> redisTemplate;
-  // Giả sử mỗi user có hạn mức 10,000 token / ngày
   private static final int DAILY_QUOTA = 10000;
 
   public Mono<Boolean> isAllowed(String userId, int tokenCost) {
     String key = "rate_limit:user:" + userId;
 
-    return redisTemplate.opsForValue().get(key)
-        .defaultIfEmpty(DAILY_QUOTA) // Nếu chưa có, gán mặc định
+    return redisTemplate.opsForValue().get(key).defaultIfEmpty(DAILY_QUOTA)
         .flatMap(currentTokens -> {
-          int remaining = (int) currentTokens;
+          int remaining = currentTokens instanceof Number ? ((Number) currentTokens).intValue()
+              : Integer.parseInt(currentTokens.toString());
           if (remaining >= tokenCost) {
-            // Đủ hạn mức -> trừ token và lưu lại vào Redis
-            return redisTemplate.opsForValue()
-                .set(key, remaining - tokenCost)
-                .thenReturn(true);
+            return redisTemplate.opsForValue().set(key, remaining - tokenCost).thenReturn(true);
           } else {
-            // Hết hạn mức
             return Mono.just(false);
           }
         });

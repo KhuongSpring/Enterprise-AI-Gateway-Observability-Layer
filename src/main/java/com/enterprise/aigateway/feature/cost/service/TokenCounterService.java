@@ -9,7 +9,6 @@ import org.springframework.stereotype.Service;
 @Service
 public class TokenCounterService {
   private final EncodingRegistry registry = Encodings.newDefaultEncodingRegistry();
-  // Sử dụng chuẩn mã hóa cl100k_base (dùng cho GPT-3.5, GPT-4)
   private final Encoding encoding = registry.getEncoding(EncodingType.CL100K_BASE);
 
   public int countTokens(String text) {

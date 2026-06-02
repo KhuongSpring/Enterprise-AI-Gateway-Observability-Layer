@@ -13,12 +13,14 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
 public class RedisConfig {
 
   @Bean
-  public ReactiveRedisTemplate<String, Object> reactiveRedisTemplate(ReactiveRedisConnectionFactory factory) {
+  public ReactiveRedisTemplate<String, Object> reactiveRedisTemplate(
+      ReactiveRedisConnectionFactory factory) {
     StringRedisSerializer keySerializer = new StringRedisSerializer();
-    Jackson2JsonRedisSerializer<Object> valueSerializer = new Jackson2JsonRedisSerializer<>(Object.class);
+    Jackson2JsonRedisSerializer<Object> valueSerializer =
+        new Jackson2JsonRedisSerializer<>(Object.class);
 
-    RedisSerializationContext.RedisSerializationContextBuilder<String, Object> builder = RedisSerializationContext
-        .newSerializationContext(keySerializer);
+    RedisSerializationContext.RedisSerializationContextBuilder<String, Object> builder =
+        RedisSerializationContext.newSerializationContext(keySerializer);
 
     RedisSerializationContext<String, Object> context = builder.value(valueSerializer).build();
 
@@ -26,7 +28,8 @@ public class RedisConfig {
   }
 
   @Bean
-  public ReactiveStringRedisTemplate reactiveStringRedisTemplate(ReactiveRedisConnectionFactory factory) {
+  public ReactiveStringRedisTemplate reactiveStringRedisTemplate(
+      ReactiveRedisConnectionFactory factory) {
     return new ReactiveStringRedisTemplate(factory);
   }
 }

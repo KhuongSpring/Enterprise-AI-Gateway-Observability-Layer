@@ -1,25 +1,26 @@
 package com.enterprise.aigateway.feature.gateway.controller;
 
+import com.enterprise.aigateway.common.RestApiV1;
 import com.enterprise.aigateway.common.RestData;
 import com.enterprise.aigateway.common.VsResponseUtil;
+import com.enterprise.aigateway.constant.ErrorMessage;
+import com.enterprise.aigateway.constant.UrlConstant;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Mono;
 
 @Slf4j
-@RestController
-@RequestMapping("/fallback")
+@RestApiV1
 public class FallbackController {
 
-  @RequestMapping("/llm")
+  @RequestMapping(UrlConstant.LLM_URL)
   public Mono<ResponseEntity<RestData<String>>> llmFallback() {
-    log.error("Circuit Breaker OPEN: Dịch vụ LLM (OpenAI/Gemini) đang gặp sự cố hoặc quá tải.");
+    log.error(ErrorMessage.ERR_CIRCUIT_BREAKER_OPEN);
 
     return Mono.just(VsResponseUtil.error(HttpStatus.SERVICE_UNAVAILABLE,
-        "Dịch vụ AI hiện đang quá tải hoặc gặp sự cố. Vui lòng thử lại sau ít phút."));
+        ErrorMessage.ERR_CIRCUIT_BREAKER_OPEN));
   }
 }

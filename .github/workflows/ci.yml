@@ -25,8 +25,8 @@ jobs:
           java-version: '21'
           cache: 'maven'
 
-      # - name: Validate Code Formatting
-      #   run: mvn -T 2C --batch-mode formatter:validate
+      - name: Validate Code Formatting
+        run: mvn -T 2C --batch-mode formatter:validate
 
-      - name: Build with Maven (skip tests)
-        run: mvn -T 2C --batch-mode verify -DskipTests
+      - name: Build and Test
+        run: mvn -T 2C --batch-mode verify
