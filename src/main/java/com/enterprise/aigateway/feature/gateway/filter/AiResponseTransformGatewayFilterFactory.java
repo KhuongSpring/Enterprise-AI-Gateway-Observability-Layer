@@ -13,31 +13,31 @@ import reactor.core.publisher.Mono;
 @Component
 public class AiResponseTransformGatewayFilterFactory extends AbstractGatewayFilterFactory<Object> {
 
-    private final ModifyResponseBodyGatewayFilterFactory modifyResponseBodyFilterFactory;
-    private final AiResponseTransformService transformService;
+  private final ModifyResponseBodyGatewayFilterFactory modifyResponseBodyFilterFactory;
+  private final AiResponseTransformService transformService;
 
-    public AiResponseTransformGatewayFilterFactory(
-            ModifyResponseBodyGatewayFilterFactory modifyResponseBodyFilterFactory,
-            AiResponseTransformService transformService) {
-        super(Object.class);
-        this.modifyResponseBodyFilterFactory = modifyResponseBodyFilterFactory;
-        this.transformService = transformService;
-    }
+  public AiResponseTransformGatewayFilterFactory(
+      ModifyResponseBodyGatewayFilterFactory modifyResponseBodyFilterFactory,
+      AiResponseTransformService transformService) {
+    super(Object.class);
+    this.modifyResponseBodyFilterFactory = modifyResponseBodyFilterFactory;
+    this.transformService = transformService;
+  }
 
-    @Override
-    public GatewayFilter apply(Object config) {
-        ModifyResponseBodyGatewayFilterFactory.Config modifyConfig = new ModifyResponseBodyGatewayFilterFactory.Config()
-                .setInClass(String.class)
-                .setOutClass(String.class)
-                .setRewriteFunction(String.class, String.class, (exchange, inBody) -> {
-                    String provider = exchange.getAttribute(CommonConstant.AI_PROVIDER);
-                    if (provider == null || inBody == null) {
-                        return Mono.justOrEmpty(inBody);
-                    }
-                    String outBody = transformService.transform(inBody, provider);
-                    return Mono.just(outBody);
-                });
+  @Override
+  public GatewayFilter apply(Object config) {
+    ModifyResponseBodyGatewayFilterFactory.Config modifyConfig =
+        new ModifyResponseBodyGatewayFilterFactory.Config().setInClass(String.class)
+            .setOutClass(String.class)
+            .setRewriteFunction(String.class, String.class, (exchange, inBody) -> {
+              String provider = exchange.getAttribute(CommonConstant.AI_PROVIDER);
+              if (provider == null || inBody == null) {
+                return Mono.justOrEmpty(inBody);
+              }
+              String outBody = transformService.transform(inBody, provider);
+              return Mono.just(outBody);
+            });
 
-        return modifyResponseBodyFilterFactory.apply(modifyConfig);
-    }
+    return modifyResponseBodyFilterFactory.apply(modifyConfig);
+  }
 }

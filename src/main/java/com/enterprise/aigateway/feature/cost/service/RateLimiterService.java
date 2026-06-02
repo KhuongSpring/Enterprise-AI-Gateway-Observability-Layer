@@ -15,16 +15,12 @@ public class RateLimiterService {
   public Mono<Boolean> isAllowed(String userId, int tokenCost) {
     String key = "rate_limit:user:" + userId;
 
-    return redisTemplate.opsForValue().get(key)
-        .defaultIfEmpty(DAILY_QUOTA)
+    return redisTemplate.opsForValue().get(key).defaultIfEmpty(DAILY_QUOTA)
         .flatMap(currentTokens -> {
-          int remaining = currentTokens instanceof Number 
-              ? ((Number) currentTokens).intValue() 
+          int remaining = currentTokens instanceof Number ? ((Number) currentTokens).intValue()
               : Integer.parseInt(currentTokens.toString());
           if (remaining >= tokenCost) {
-            return redisTemplate.opsForValue()
-                .set(key, remaining - tokenCost)
-                .thenReturn(true);
+            return redisTemplate.opsForValue().set(key, remaining - tokenCost).thenReturn(true);
           } else {
             return Mono.just(false);
           }

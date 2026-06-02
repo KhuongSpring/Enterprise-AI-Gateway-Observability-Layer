@@ -16,17 +16,17 @@ import reactor.core.publisher.Mono;
 @Component
 public class DynamicRoutingFilter implements GlobalFilter, Ordered {
 
-    @Override
-    public int getOrder() {
-        return 10001;
-    }
+  @Override
+  public int getOrder() {
+    return 10001;
+  }
 
-    @Override
-    public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
-        URI dynamicUri = exchange.getAttribute(CommonConstant.TARGET_AI_URI);
-        if (dynamicUri != null) {
-            exchange.getAttributes().put(ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR, dynamicUri);
-        }
-        return chain.filter(exchange);
+  @Override
+  public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
+    URI dynamicUri = exchange.getAttribute(CommonConstant.TARGET_AI_URI);
+    if (dynamicUri != null) {
+      exchange.getAttributes().put(ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR, dynamicUri);
     }
+    return chain.filter(exchange);
+  }
 }

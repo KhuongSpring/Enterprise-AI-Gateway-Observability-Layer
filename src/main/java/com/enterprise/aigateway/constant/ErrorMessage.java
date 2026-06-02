@@ -26,11 +26,14 @@ public class ErrorMessage {
 
   public static final String ERR_GEMINI_CONTENTS_NOT_EMPTY = "exception.gemini.contents.not.empty";
   public static final String ERR_GEMINI_PARTS_NOT_EMPTY = "exception.gemini.parts.not.empty";
-  public static final String ERR_GEMINI_PARTS_TEXT_NOT_BLANK = "exception.gemini.parts.text.not.blank";
+  public static final String ERR_GEMINI_PARTS_TEXT_NOT_BLANK =
+      "exception.gemini.parts.text.not.blank";
 
   public static final String ERR_OPENAI_MESSAGES_NOT_EMPTY = "exception.openai.messages.not.empty";
-  public static final String ERR_OPENAI_MESSAGES_ROLE_NOT_BLANK = "exception.openai.messages.role.not.blank";
-  public static final String ERR_OPENAI_MESSAGES_CONTENT_NOT_BLANK = "exception.openai.messages.content.not.blank";
+  public static final String ERR_OPENAI_MESSAGES_ROLE_NOT_BLANK =
+      "exception.openai.messages.role.not.blank";
+  public static final String ERR_OPENAI_MESSAGES_CONTENT_NOT_BLANK =
+      "exception.openai.messages.content.not.blank";
 
   public static final String ERR_REQUEST_BODY_IS_EMPTY = "exception.request.body.is.empty";
   public static final String ERR_REQUEST_BODY_IS_INVALID = "exception.request.body.is.invalid";

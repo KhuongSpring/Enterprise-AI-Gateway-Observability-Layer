@@ -29,8 +29,7 @@ public class AiPayloadTransformService {
   private final ObjectMapper objectMapper;
 
   public AiPayloadTransformService(TokenCounterService tokenCounterService,
-      RateLimiterService rateLimiterService,
-      ObjectMapper objectMapper) {
+      RateLimiterService rateLimiterService, ObjectMapper objectMapper) {
     this.tokenCounterService = tokenCounterService;
     this.rateLimiterService = rateLimiterService;
     this.objectMapper = objectMapper;
@@ -47,31 +46,27 @@ public class AiPayloadTransformService {
         try {
           if (model.toLowerCase().startsWith(CommonConstant.GEMINI)) {
             GeminiRequest geminiReq = GeminiRequest.builder()
-                .contents(Collections.singletonList(
-                    GeminiRequest.Content.builder()
-                        .parts(Collections.singletonList(
-                            GeminiRequest.Part.builder().text(inRequest.getPrompt()).build()))
-                        .build()))
+                .contents(Collections.singletonList(GeminiRequest.Content.builder()
+                    .parts(Collections.singletonList(
+                        GeminiRequest.Part.builder().text(inRequest.getPrompt()).build()))
+                    .build()))
                 .build();
             return Mono.just(objectMapper.writeValueAsBytes(geminiReq));
           } else {
-            OpenAiRequest outRequest = OpenAiRequest.builder()
-                .model(model)
-                .messages(Collections.singletonList(
-                    OpenAiRequest.Message.builder()
-                        .role("user")
-                        .content(inRequest.getPrompt())
-                        .build()))
+            OpenAiRequest outRequest = OpenAiRequest.builder().model(model)
+                .messages(Collections.singletonList(OpenAiRequest.Message.builder().role("user")
+                    .content(inRequest.getPrompt()).build()))
                 .build();
             return Mono.just(objectMapper.writeValueAsBytes(outRequest));
           }
         } catch (JsonProcessingException e) {
-          return Mono.error(
-              new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, ErrorMessage.JSON_SERIALIZATION_ERROR));
+          return Mono.error(new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
+              ErrorMessage.JSON_SERIALIZATION_ERROR));
         }
       } else {
         log.warn(LogConstant.LOG_USER_EXCEEDED_TOKEN, userId);
-        return Mono.error(new ResponseStatusException(HttpStatus.TOO_MANY_REQUESTS, ErrorMessage.RATE_LIMIT_EXCEEDED));
+        return Mono.error(new ResponseStatusException(HttpStatus.TOO_MANY_REQUESTS,
+            ErrorMessage.RATE_LIMIT_EXCEEDED));
       }
     });
   }

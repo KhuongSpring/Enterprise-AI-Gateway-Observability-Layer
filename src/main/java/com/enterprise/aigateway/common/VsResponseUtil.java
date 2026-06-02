@@ -15,12 +15,13 @@ public class VsResponseUtil {
     return new ResponseEntity<>(response, status);
   }
 
-  public static <T> ResponseEntity<RestData<T>> success(MultiValueMap<String, String> header, T data) {
+  public static <T> ResponseEntity<RestData<T>> success(MultiValueMap<String, String> header,
+      T data) {
     return success(HttpStatus.OK, header, data);
   }
 
-  public static <T> ResponseEntity<RestData<T>> success(HttpStatus status, MultiValueMap<String, String> header,
-      T data) {
+  public static <T> ResponseEntity<RestData<T>> success(HttpStatus status,
+      MultiValueMap<String, String> header, T data) {
     RestData<T> response = new RestData<>(data);
     HttpHeaders responseHeaders = new HttpHeaders();
     responseHeaders.addAll(header);

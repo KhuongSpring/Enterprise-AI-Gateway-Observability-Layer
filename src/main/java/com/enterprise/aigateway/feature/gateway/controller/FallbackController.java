@@ -20,6 +20,7 @@ public class FallbackController {
   public Mono<ResponseEntity<RestData<String>>> llmFallback() {
     log.error(ErrorMessage.ERR_CIRCUIT_BREAKER_OPEN);
 
-    return Mono.just(VsResponseUtil.error(HttpStatus.SERVICE_UNAVAILABLE, ErrorMessage.ERR_CIRCUIT_BREAKER_OPEN));
+    return Mono.just(VsResponseUtil.error(HttpStatus.SERVICE_UNAVAILABLE,
+        ErrorMessage.ERR_CIRCUIT_BREAKER_OPEN));
   }
 }

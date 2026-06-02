@@ -40,12 +40,8 @@ public class AiResponseTransformService {
           usage.setTotalTokens(geminiRes.getUsageMetadata().getTotalTokenCount());
         }
 
-        AiGatewayResponse unified = AiGatewayResponse.builder()
-            .id(geminiRes.getResponseId())
-            .model(geminiRes.getModelVersion())
-            .content(content)
-            .usage(usage)
-            .build();
+        AiGatewayResponse unified = AiGatewayResponse.builder().id(geminiRes.getResponseId())
+            .model(geminiRes.getModelVersion()).content(content).usage(usage).build();
 
         return objectMapper.writeValueAsString(unified);
       } else {
@@ -64,12 +60,8 @@ public class AiResponseTransformService {
           usage.setTotalTokens(openaiRes.getUsage().getTotalTokens());
         }
 
-        AiGatewayResponse unified = AiGatewayResponse.builder()
-            .id(openaiRes.getId())
-            .model(openaiRes.getModel())
-            .content(content)
-            .usage(usage)
-            .build();
+        AiGatewayResponse unified = AiGatewayResponse.builder().id(openaiRes.getId())
+            .model(openaiRes.getModel()).content(content).usage(usage).build();
 
         return objectMapper.writeValueAsString(unified);
       }

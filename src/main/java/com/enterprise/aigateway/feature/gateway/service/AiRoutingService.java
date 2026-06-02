@@ -16,12 +16,11 @@ public class AiRoutingService {
 
   public AiRouteConfig determineRoute(String model) {
     if (model != null && model.toLowerCase().startsWith("gemini")) {
-      return new AiRouteConfig(
-          URI.create("https://generativelanguage.googleapis.com/v1beta/models/" + model + ":generateContent"),
+      return new AiRouteConfig(URI.create(
+          "https://generativelanguage.googleapis.com/v1beta/models/" + model + ":generateContent"),
           Map.of("x-goog-api-key", geminiKey));
     }
-    return new AiRouteConfig(
-        URI.create("https://api.openai.com/v1/chat/completions"),
+    return new AiRouteConfig(URI.create("https://api.openai.com/v1/chat/completions"),
         Map.of("Authorization", "Bearer " + openaiKey));
   }
 
