@@ -8,10 +8,10 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class AiRoutingService {
-  @Value("${OPENAI_API_KEY}")
+  @Value("${OPENAI_API_KEY:}")
   private String openaiKey;
 
-  @Value("${GEMINI_API_KEY}")
+  @Value("${GEMINI_API_KEY:}")
   private String geminiKey;
 
   public AiRouteConfig determineRoute(String model) {
