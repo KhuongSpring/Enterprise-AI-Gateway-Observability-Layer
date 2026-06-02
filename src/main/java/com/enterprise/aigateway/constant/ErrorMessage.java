@@ -38,4 +38,7 @@ public class ErrorMessage {
   public static final String ERR_REQUEST_BODY_IS_EMPTY = "exception.request.body.is.empty";
   public static final String ERR_REQUEST_BODY_IS_INVALID = "exception.request.body.is.invalid";
   public static final String ERR_REQUEST_BODY_PARSE_FAIL = "exception.request.body.parse.fail";
+
+  public static final String ERR_PROMPT_EXCEEDED_MAX_TOKENS =
+      "exception.prompt.exceeded.max.tokens";
 }
