@@ -26,7 +26,7 @@ jobs:
           cache: 'maven'
 
       - name: Validate Code Formatting
-        run: mvn --batch-mode formatter:validate
+        run: mvn -T 2C --batch-mode formatter:validate
 
       - name: Build and Test
-        run: mvn --batch-mode clean verify
+        run: mvn -T 2C --batch-mode verify
