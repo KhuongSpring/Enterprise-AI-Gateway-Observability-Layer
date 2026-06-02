@@ -6,9 +6,9 @@ spring:
     
   # DATABASE (R2DBC)
   r2dbc:
-    url: ${SPRING_R2DBC_URL}
-    username: ${SPRING_R2DBC_USERNAME}
-    password: ${SPRING_R2DBC_PASSWORD}
+    url: ${SPRING_R2DBC_URL:r2dbc:mysql://localhost:3306/aigateway}
+    username: ${SPRING_R2DBC_USERNAME:root}
+    password: ${SPRING_R2DBC_PASSWORD:root}
     
   # Redis Properties
   data:
@@ -39,7 +39,7 @@ spring:
             - name: CircuitBreaker
               args:
                 name: aiCircuitBreaker
-                fallbackUri: forward:/fallback/llm
+                fallbackUri: forward:/api/v1/fallback/llm
 
 # APP
 application:

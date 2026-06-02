@@ -74,7 +74,7 @@ public class AiResponseTransformService {
         return objectMapper.writeValueAsString(unified);
       }
     } catch (Exception e) {
-      log.error(LogConstant.LOG_TRANSFORM_PROVIDER_RESPONSE, provider, e.getMessage());
+      log.error(LogConstant.LOG_TRANSFORM_PROVIDER_RESPONSE, provider, e.getMessage(), e);
       return responseBody;
     }
   }

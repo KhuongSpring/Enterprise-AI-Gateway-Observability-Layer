@@ -18,7 +18,9 @@ public class RateLimiterService {
     return redisTemplate.opsForValue().get(key)
         .defaultIfEmpty(DAILY_QUOTA)
         .flatMap(currentTokens -> {
-          int remaining = (int) currentTokens;
+          int remaining = currentTokens instanceof Number 
+              ? ((Number) currentTokens).intValue() 
+              : Integer.parseInt(currentTokens.toString());
           if (remaining >= tokenCost) {
             return redisTemplate.opsForValue()
                 .set(key, remaining - tokenCost)

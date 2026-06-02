@@ -61,7 +61,11 @@ public class PromptTransformGatewayFilterFactory extends AbstractGatewayFilterFa
 
           AiGatewayRequest inRequest = objectMapper.readValue(bytes, AiGatewayRequest.class);
 
-          if (inRequest == null || inRequest.getModel() == null || inRequest.getPrompt() == null) {
+          if (inRequest == null ||
+              inRequest.getModel() == null ||
+              inRequest.getModel().isBlank() ||
+              inRequest.getPrompt() == null ||
+              inRequest.getPrompt().isBlank()) {
             return Mono
                 .error(new ResponseStatusException(HttpStatus.BAD_REQUEST, ErrorMessage.ERR_REQUEST_BODY_IS_INVALID));
           }
@@ -103,7 +107,7 @@ public class PromptTransformGatewayFilterFactory extends AbstractGatewayFilterFa
                     HttpHeaders headers = new HttpHeaders();
                     headers.putAll(super.getHeaders());
                     for (Map.Entry<String, String> entry : routeConfig.getHeaders().entrySet()) {
-                      headers.add(entry.getKey(), entry.getValue());
+                      headers.set(entry.getKey(), entry.getValue());
                     }
                     headers.remove(HttpHeaders.CONTENT_LENGTH);
                     headers.setContentLength(newBodyBytes.length);
@@ -116,7 +120,7 @@ public class PromptTransformGatewayFilterFactory extends AbstractGatewayFilterFa
               });
 
         } catch (Exception e) {
-          log.error(LogConstant.LOG_REQUEST_BODY_PARSE_FAIL, e);
+          log.error(LogConstant.LOG_REQUEST_BODY_PARSE_FAIL, e.getMessage(), e);
           return Mono
               .error(new ResponseStatusException(HttpStatus.BAD_REQUEST, ErrorMessage.ERR_REQUEST_BODY_PARSE_FAIL));
         }
