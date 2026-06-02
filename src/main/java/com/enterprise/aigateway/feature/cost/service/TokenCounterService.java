@@ -9,12 +9,20 @@ import org.springframework.stereotype.Service;
 @Service
 public class TokenCounterService {
   private final EncodingRegistry registry = Encodings.newDefaultEncodingRegistry();
-  private final Encoding encoding = registry.getEncoding(EncodingType.CL100K_BASE);
+  private final Encoding defaultEncoding = registry.getEncoding(EncodingType.CL100K_BASE);
 
-  public int countTokens(String text) {
+  public int countTokens(String modelName, String text) {
     if (text == null || text.isEmpty()) {
       return 0;
     }
-    return encoding.encode(text).size();
+
+    Encoding encoding = registry.getEncodingForModel(modelName).orElse(defaultEncoding);
+
+    int baseTokens = encoding.countTokensOrdinary(text);
+
+    // Overhead for single user message in chat completion API (approximate)
+    int chatMessageOverhead = 7;
+
+    return baseTokens + chatMessageOverhead;
   }
 }

@@ -2,6 +2,7 @@ package com.enterprise.aigateway.feature.gateway.service;
 
 import java.util.Collections;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -28,6 +29,9 @@ public class AiPayloadTransformService {
   private final RateLimiterService rateLimiterService;
   private final ObjectMapper objectMapper;
 
+  @Value("${application.aigateway.cost.max-prompt-tokens:4000}")
+  private int maxPromptTokens;
+
   public AiPayloadTransformService(TokenCounterService tokenCounterService,
       RateLimiterService rateLimiterService, ObjectMapper objectMapper) {
     this.tokenCounterService = tokenCounterService;
@@ -38,8 +42,14 @@ public class AiPayloadTransformService {
   public Mono<byte[]> transformPayload(AiGatewayRequest inRequest, String userId) {
     String model = inRequest.getModel();
 
-    int tokenCost = tokenCounterService.countTokens(inRequest.getPrompt());
+    int tokenCost = tokenCounterService.countTokens(model, inRequest.getPrompt());
     log.info(LogConstant.LOG_REQUEST_TOKEN, userId, tokenCost);
+
+    if (tokenCost > maxPromptTokens) {
+      log.warn(LogConstant.LOG_USER_EXCEEDED_MAX_PROMPT_TOKENS, userId, tokenCost, maxPromptTokens);
+      return Mono.error(new ResponseStatusException(HttpStatus.BAD_REQUEST,
+          ErrorMessage.ERR_PROMPT_EXCEEDED_MAX_TOKENS));
+    }
 
     return rateLimiterService.isAllowed(userId, tokenCost).flatMap(allowed -> {
       if (allowed) {

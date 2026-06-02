@@ -6,4 +6,6 @@ public class LogConstant {
   public static final String LOG_TRANSFORM_PROVIDER_RESPONSE =
       "Lỗi khi chuẩn hóa response của provider {}: {}";
   public static final String LOG_REQUEST_BODY_PARSE_FAIL = "Lỗi khi parse request body: {}";
+  public static final String LOG_USER_EXCEEDED_MAX_PROMPT_TOKENS =
+      "User {} đã vượt quá số token tối đa cho prompt. Cost: {}, Max: {}";
 }
