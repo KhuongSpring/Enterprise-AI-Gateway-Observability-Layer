@@ -52,11 +52,19 @@ public class AiResponseTransformService {
 
         String finalResponse = objectMapper.writeValueAsString(unified);
         final int deductedTokens = totalTokens;
+
+        if (deductedTokens <= 0) {
+          return Mono.just(finalResponse);
+        }
+
         return rateLimiterService.deductTokens(userId, deductedTokens).doOnSuccess(success -> {
           if (Boolean.TRUE.equals(success)) {
             log.info(LogConstant.LOG_USER_TOKENS_DEDUCTED, userId, deductedTokens);
           }
-        }).map(success -> finalResponse);
+        }).onErrorResume(e -> {
+          log.warn(LogConstant.LOG_USER_TOKENS_FAILED, userId, e.getMessage());
+          return Mono.just(false);
+        }).thenReturn(finalResponse);
 
       } else {
         OpenAiResponse openaiRes = objectMapper.readValue(responseBody, OpenAiResponse.class);
@@ -81,11 +89,19 @@ public class AiResponseTransformService {
 
         String finalResponse = objectMapper.writeValueAsString(unified);
         final int deductedTokens = totalTokens;
+
+        if (deductedTokens <= 0) {
+          return Mono.just(finalResponse);
+        }
+
         return rateLimiterService.deductTokens(userId, deductedTokens).doOnSuccess(success -> {
           if (Boolean.TRUE.equals(success)) {
             log.info(LogConstant.LOG_USER_TOKENS_DEDUCTED, userId, deductedTokens);
           }
-        }).map(success -> finalResponse);
+        }).onErrorResume(e -> {
+          log.warn(LogConstant.LOG_USER_TOKENS_FAILED, userId, e.getMessage());
+          return Mono.just(false);
+        }).thenReturn(finalResponse);
       }
     } catch (Exception e) {
       log.error(LogConstant.LOG_TRANSFORM_PROVIDER_RESPONSE, provider, e.getMessage(), e);
