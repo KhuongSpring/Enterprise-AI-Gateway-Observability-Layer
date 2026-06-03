@@ -31,11 +31,17 @@ public class AiResponseTransformGatewayFilterFactory extends AbstractGatewayFilt
             .setOutClass(String.class)
             .setRewriteFunction(String.class, String.class, (exchange, inBody) -> {
               String provider = exchange.getAttribute(CommonConstant.AI_PROVIDER);
+              String userId = exchange.getAttribute("X-User-Id");
+
               if (provider == null || inBody == null) {
                 return Mono.justOrEmpty(inBody);
               }
-              String outBody = transformService.transform(inBody, provider);
-              return Mono.just(outBody);
+
+              if (userId == null) {
+                userId = "anonymous";
+              }
+
+              return transformService.transform(inBody, provider, userId);
             });
 
     return modifyResponseBodyFilterFactory.apply(modifyConfig);

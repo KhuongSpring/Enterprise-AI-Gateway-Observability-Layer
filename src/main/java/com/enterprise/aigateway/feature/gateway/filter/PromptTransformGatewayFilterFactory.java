@@ -84,6 +84,7 @@ public class PromptTransformGatewayFilterFactory extends AbstractGatewayFilterFa
           // Rate Limit)
           String rawUserId = exchange.getRequest().getHeaders().getFirst("X-User-Id");
           String userId = (rawUserId != null) ? rawUserId : "anonymous";
+          exchange.getAttributes().put("X-User-Id", userId);
 
           return aiPayloadTransformService.transformPayload(inRequest, userId)
               .flatMap(newBodyBytes -> {

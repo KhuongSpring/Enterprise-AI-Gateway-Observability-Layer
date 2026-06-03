@@ -8,4 +8,5 @@ public class LogConstant {
   public static final String LOG_REQUEST_BODY_PARSE_FAIL = "Lỗi khi parse request body: {}";
   public static final String LOG_USER_EXCEEDED_MAX_PROMPT_TOKENS =
       "User {} đã vượt quá số token tối đa cho prompt. Cost: {}, Max: {}";
+  public static final String LOG_USER_TOKENS_DEDUCTED = "User {} đã bị trừ khoảng {} tokens";
 }

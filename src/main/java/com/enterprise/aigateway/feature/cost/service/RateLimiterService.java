@@ -24,4 +24,15 @@ public class RateLimiterService {
       return remaining >= tokenCost;
     });
   }
+
+  public Mono<Boolean> deductTokens(String userId, int tokenCost) {
+    String key = "rate_limit:user:" + userId;
+
+    return redisTemplate.opsForValue().get(key).defaultIfEmpty(dailyQuota)
+        .flatMap(currentTokens -> {
+          int remaining = currentTokens instanceof Number ? ((Number) currentTokens).intValue()
+              : Integer.parseInt(currentTokens.toString());
+          return redisTemplate.opsForValue().set(key, remaining - tokenCost).thenReturn(true);
+        });
+  }
 }
