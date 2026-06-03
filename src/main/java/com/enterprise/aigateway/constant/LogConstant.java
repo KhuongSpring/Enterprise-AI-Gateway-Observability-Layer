@@ -10,4 +10,12 @@ public class LogConstant {
       "User {} đã vượt quá số token tối đa cho prompt. Cost: {}, Max: {}";
   public static final String LOG_USER_TOKENS_DEDUCTED = "User {} đã bị trừ khoảng {} tokens";
   public static final String LOG_USER_TOKENS_FAILED = "User {} không đủ token hoặc Redis lỗi {}";
+
+  // Circuit Breaker
+  public static final String LOG_CIRCUIT_BREAKER_STATE_CHANGED =
+      "[CIRCUIT BREAKER] STATE CHANGED: {} -> {}";
+  public static final String LOG_CIRCUIT_BREAKER_CALL_REJECTED =
+      "[CIRCUIT BREAKER] CALL REJECTED: Mạch đang MỞ (OPEN). Không thể gọi LLM Provider.";
+  public static final String LOG_CIRCUIT_BREAKER_LLM_CALL_FAILED =
+      "[CIRCUIT BREAKER] LLM CALL FAILED: {}, Duration: {}ms";
 }

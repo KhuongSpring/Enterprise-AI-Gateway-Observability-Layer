@@ -32,4 +32,9 @@ public class VsResponseUtil {
     RestData<T> response = RestData.error(message);
     return new ResponseEntity<>(response, status);
   }
+
+  public static <T> ResponseEntity<RestData<T>> error(T data) {
+    RestData<T> response = RestData.error(data);
+    return new ResponseEntity<>(response, HttpStatus.SERVICE_UNAVAILABLE);
+  }
 }

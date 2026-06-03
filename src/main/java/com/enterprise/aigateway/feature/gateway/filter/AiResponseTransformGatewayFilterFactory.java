@@ -37,6 +37,12 @@ public class AiResponseTransformGatewayFilterFactory extends AbstractGatewayFilt
                 return Mono.justOrEmpty(inBody);
               }
 
+              // DO NOT transform if the LLM provider returned an HTTP error (e.g., 401, 500)
+              if (exchange.getResponse().getStatusCode() != null
+                  && exchange.getResponse().getStatusCode().isError()) {
+                return Mono.justOrEmpty(inBody);
+              }
+
               if (userId == null) {
                 userId = "anonymous";
               }
