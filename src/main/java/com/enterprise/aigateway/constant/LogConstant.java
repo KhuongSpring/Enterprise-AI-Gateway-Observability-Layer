@@ -6,4 +6,16 @@ public class LogConstant {
   public static final String LOG_TRANSFORM_PROVIDER_RESPONSE =
       "Lỗi khi chuẩn hóa response của provider {}: {}";
   public static final String LOG_REQUEST_BODY_PARSE_FAIL = "Lỗi khi parse request body: {}";
+  public static final String LOG_USER_EXCEEDED_MAX_PROMPT_TOKENS =
+      "User {} đã vượt quá số token tối đa cho prompt. Cost: {}, Max: {}";
+  public static final String LOG_USER_TOKENS_DEDUCTED = "User {} đã bị trừ khoảng {} tokens";
+  public static final String LOG_USER_TOKENS_FAILED = "User {} không đủ token hoặc Redis lỗi {}";
+
+  // Circuit Breaker
+  public static final String LOG_CIRCUIT_BREAKER_STATE_CHANGED =
+      "[CIRCUIT BREAKER] STATE CHANGED: {} -> {}";
+  public static final String LOG_CIRCUIT_BREAKER_CALL_REJECTED =
+      "[CIRCUIT BREAKER] CALL REJECTED: Mạch đang MỞ (OPEN). Không thể gọi LLM Provider.";
+  public static final String LOG_CIRCUIT_BREAKER_LLM_CALL_FAILED =
+      "[CIRCUIT BREAKER] LLM CALL FAILED: {}, Duration: {}ms";
 }

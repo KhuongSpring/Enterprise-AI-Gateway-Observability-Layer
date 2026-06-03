@@ -45,6 +45,10 @@ spring:
 application:
   repository:
     query-limit-warning-ms: ${QUERY_LIMIT_WARNING_MS:1000}
+  aigateway:
+    cost:
+      rate-limit: 10000
+      max-prompt-tokens: 4000
 
 server:
   port: ${SPRING_SERVER_PORT:8080}
@@ -94,4 +98,4 @@ resilience4j:
   timelimiter:
     configs:
       default:
-        timeoutDuration: 15s # Nếu gọi LLM quá 15s không phản hồi -> Tính là lỗi để ngắt mạch
+        timeoutDuration: 100s # Nếu gọi LLM quá 100s không phản hồi -> Tính là lỗi để ngắt mạch
