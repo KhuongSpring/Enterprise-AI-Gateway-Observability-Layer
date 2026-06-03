@@ -98,4 +98,4 @@ resilience4j:
   timelimiter:
     configs:
       default:
-        timeoutDuration: 15s # Nếu gọi LLM quá 15s không phản hồi -> Tính là lỗi để ngắt mạch
+        timeoutDuration: 100s # Nếu gọi LLM quá 100s không phản hồi -> Tính là lỗi để ngắt mạch
