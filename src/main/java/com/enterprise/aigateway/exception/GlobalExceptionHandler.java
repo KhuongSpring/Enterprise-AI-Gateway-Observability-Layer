@@ -64,8 +64,8 @@ public class GlobalExceptionHandler {
   @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
   public ResponseEntity<RestData<String>> handlerInternalServerError(Exception ex) {
     log.error(ex.getMessage(), ex);
-    String message = messageSource.getMessage(ErrorMessage.ERR_EXCEPTION_GENERAL, null,
-        LocaleContextHolder.getLocale());
+    String message =
+        messageSource.getMessage(ErrorMessage.ERR_GENERAL, null, LocaleContextHolder.getLocale());
     return VsResponseUtil.error(HttpStatus.INTERNAL_SERVER_ERROR, message);
   }
 

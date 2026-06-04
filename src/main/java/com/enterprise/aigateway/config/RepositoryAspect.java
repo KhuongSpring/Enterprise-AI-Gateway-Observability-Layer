@@ -10,12 +10,20 @@ import org.aspectj.lang.annotation.Aspect;
 import org.reactivestreams.Publisher;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+
+import com.enterprise.aigateway.constant.LogConstant;
+
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
+/**
+ * Lớp Aspect dùng để theo dõi (monitor) và ghi log thời gian thực thi của các phương thức
+ * Repository. Giúp phát hiện các truy vấn cơ sở dữ liệu chậm (slow queries) và cung cấp metrics cho
+ * hệ thống giám sát (như Prometheus).
+ */
 @Slf4j
 @Aspect
 @Component
@@ -31,20 +39,25 @@ public class RepositoryAspect {
   public Object logExecutionTime(ProceedingJoinPoint joinPoint) throws Throwable {
     Object result = joinPoint.proceed();
 
+    // Xử lý riêng cho kiểu Mono (1 kết quả trả về bất đồng bộ trong Reactor)
     if (result instanceof Mono<?> mono) {
       return wrapMono(joinPoint, mono);
     }
+    // Xử lý riêng cho kiểu Flux (Nhiều kết quả trả về bất đồng bộ trong Reactor)
     if (result instanceof Flux<?> flux) {
       return wrapFlux(joinPoint, flux);
     }
+    // Xử lý riêng cho các Publisher khác của Reactive Streams
     if (result instanceof Publisher<?> publisher) {
       return wrapPublisher(joinPoint, publisher);
     }
 
+    // Xử lý cho các hàm đồng bộ bình thường không dùng Reactive
     long start = System.nanoTime();
     try {
       return result;
     } finally {
+      // Ghi lại thời gian thực thi sau khi hoàn thành
       recordTimer(joinPoint, System.nanoTime() - start);
     }
   }
@@ -67,15 +80,24 @@ public class RepositoryAspect {
         .doFinally(signalType -> recordTimer(joinPoint, System.nanoTime() - startNanos.get()));
   }
 
+  /**
+   * Phương thức lưu trữ dữ liệu thời gian thực thi (metrics) và ghi log cảnh báo
+   *
+   * @param joinPoint Thông tin hàm đang được gọi
+   * @param durationNanos Thời gian thực thi tính bằng Nano giây
+   */
   private void recordTimer(ProceedingJoinPoint joinPoint, long durationNanos) {
+    // Đẩy metric vào MeterRegistry (ví dụ để Prometheus kéo về hiển thị trên
+    // Grafana)
     Timer.builder("db.query.execution.time").description("Time taken to execute database queries")
         .tag("method", joinPoint.getSignature().getName())
         .tag("type", joinPoint.getSignature().getDeclaringType().getSimpleName())
         .register(meterRegistry).record(durationNanos, TimeUnit.NANOSECONDS);
 
     long executionMs = TimeUnit.NANOSECONDS.toMillis(durationNanos);
+
     if (executionMs >= executionLimitMs) {
-      log.warn("{} exec in {} ms : SLOW QUERY", joinPoint.getSignature(), executionMs);
+      log.warn(LogConstant.LOG_DB_QUERY_EXECUTION_TIME, joinPoint.getSignature(), executionMs);
     }
   }
 }

@@ -18,18 +18,30 @@ public class CircuitBreakerConfig {
     this.circuitBreakerRegistry = circuitBreakerRegistry;
   }
 
+  /**
+   * Phương thức dùng để đăng ký lắng nghe các sự kiện của mạch và ghi log.
+   */
   @PostConstruct
   public void setupCircuitBreakerEventPublisher() {
     CircuitBreaker circuitBreaker = circuitBreakerRegistry.circuitBreaker("aiCircuitBreaker");
 
-    circuitBreaker.getEventPublisher().onStateTransition(event -> {
-      log.warn(LogConstant.LOG_CIRCUIT_BREAKER_STATE_CHANGED,
-          event.getStateTransition().getFromState(), event.getStateTransition().getToState());
-    }).onCallNotPermitted(event -> {
-      log.error(LogConstant.LOG_CIRCUIT_BREAKER_CALL_REJECTED);
-    }).onError(event -> {
-      log.error(LogConstant.LOG_CIRCUIT_BREAKER_LLM_CALL_FAILED, event.getThrowable().getMessage(),
-          event.getElapsedDuration().toMillis());
-    });
+    circuitBreaker.getEventPublisher()
+        // Bắt sự kiện: Trạng thái mạch bị thay đổi (Ví dụ: từ CLOSED (Bình thường) ->
+        // OPEN (Ngắt mạch))
+        .onStateTransition(event -> {
+          log.warn(LogConstant.CircuitBreakerLog.LOG_CIRCUIT_BREAKER_STATE_CHANGED,
+              event.getStateTransition().getFromState(), event.getStateTransition().getToState());
+        })
+        // Bắt sự kiện: Request bị chặn lại từ sớm do mạch đang MỞ (OPEN), không cho gọi
+        // sang LLM nữa
+        .onCallNotPermitted(event -> {
+          log.error(LogConstant.CircuitBreakerLog.LOG_CIRCUIT_BREAKER_CALL_REJECTED);
+        })
+        // Bắt sự kiện: Cuộc gọi đến LLM Provider thực tế bị lỗi (Timeout, sập
+        // server...)
+        .onError(event -> {
+          log.error(LogConstant.CircuitBreakerLog.LOG_CIRCUIT_BREAKER_LLM_CALL_FAILED,
+              event.getThrowable().getMessage(), event.getElapsedDuration().toMillis());
+        });
   }
 }
