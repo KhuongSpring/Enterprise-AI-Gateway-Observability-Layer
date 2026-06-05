@@ -18,7 +18,7 @@ public class FallbackController {
 
   @RequestMapping(UrlConstant.LLM_URL)
   public Mono<ResponseEntity<RestData<AiGatewayResponse>>> llmFallback() {
-    log.error(ErrorMessage.ERR_CIRCUIT_BREAKER_OPEN);
+    log.error(ErrorMessage.GatewayError.ERR_FALLBACK_CIRCUIT_BREAKER_OPEN);
 
     AiGatewayResponse response = AiGatewayResponse.builder().id(null).model("system-fallback")
         .content(

@@ -16,13 +16,12 @@ public class GatewayConfig {
   public CorsWebFilter corsWebFilter() {
     CorsConfiguration corsConfig = new CorsConfiguration();
 
-    // Chỉ định các domain nội bộ được phép gọi đến Gateway (bảo mật: hạn chế dùng
-    // '*')
+    // Chỉ định các domain nội bộ được phép gọi đến Gateway
     corsConfig.setAllowedOrigins(Collections.singletonList("https://internal-app.enterprise.com"));
     corsConfig.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
     corsConfig.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "X-User-Id"));
     corsConfig.setAllowCredentials(true);
-    corsConfig.setMaxAge(3600L); // Cache cấu hình CORS trong 1 giờ
+    corsConfig.setMaxAge(3600L);
 
     UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
     source.registerCorsConfiguration("/**", corsConfig);

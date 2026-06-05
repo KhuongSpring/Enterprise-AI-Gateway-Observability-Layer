@@ -27,6 +27,7 @@ public class RedisConfig {
     return new ReactiveRedisTemplate<>(factory, context);
   }
 
+  // Dùng reactive redis để hỗ trợ trong môi trường webflux
   @Bean
   public ReactiveStringRedisTemplate reactiveStringRedisTemplate(
       ReactiveRedisConnectionFactory factory) {

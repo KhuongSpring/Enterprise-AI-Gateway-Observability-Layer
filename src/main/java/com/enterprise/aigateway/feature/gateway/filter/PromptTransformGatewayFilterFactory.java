@@ -26,6 +26,10 @@ import com.enterprise.aigateway.feature.gateway.service.AiRoutingService;
 import com.enterprise.aigateway.feature.gateway.service.AiRoutingService.AiRouteConfig;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+/**
+ * Filter chặn Request đầu vào từ người dùng. Chức năng chính: Đọc nội dung Request ban đầu, xác
+ * định Provider, cấu hình Routing và biến đổi Body sang định dạng phù hợp với LLM Provider đích.
+ */
 @Slf4j
 @Component
 public class PromptTransformGatewayFilterFactory extends AbstractGatewayFilterFactory<Object> {
@@ -45,58 +49,66 @@ public class PromptTransformGatewayFilterFactory extends AbstractGatewayFilterFa
   @Override
   public GatewayFilter apply(Object config) {
     return (exchange, chain) -> {
+      // Bắt buộc phải cache lại Request Body vì trong luồng WebFlux (Reactive), Body
+      // stream chỉ được đọc 1 lần duy nhất
       return ServerWebExchangeUtils.cacheRequestBody(exchange, (serverHttpRequest) -> {
         DataBuffer cachedBody =
             exchange.getAttribute(ServerWebExchangeUtils.CACHED_REQUEST_BODY_ATTR);
         if (cachedBody == null) {
           return Mono.error(new ResponseStatusException(HttpStatus.BAD_REQUEST,
-              ErrorMessage.ERR_REQUEST_BODY_IS_EMPTY));
+              ErrorMessage.GatewayError.ERR_TRANSFORM_REQUEST_BODY_IS_EMPTY));
         }
 
         try {
-          // 1. Đọc Body JSON
+          // BƯỚC 1. Đọc chuỗi JSON từ Body của Request do người dùng gửi lên
           byte[] bytes = new byte[cachedBody.readableByteCount()];
           cachedBody.read(bytes);
+          // Đưa con trỏ (position) về 0 để hệ thống có thể đọc lại mảng byte nếu cần
           cachedBody.readPosition(0);
 
+          // Convert JSON string thành AiGatewayRequest
           AiGatewayRequest inRequest = objectMapper.readValue(bytes, AiGatewayRequest.class);
 
+          // Validate thông tin model và prompt
           if (inRequest == null || inRequest.getModel() == null || inRequest.getModel().isBlank()
               || inRequest.getPrompt() == null || inRequest.getPrompt().isBlank()) {
             return Mono.error(new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                ErrorMessage.ERR_REQUEST_BODY_IS_INVALID));
+                ErrorMessage.GatewayError.ERR_TRANSFORM_REQUEST_BODY_IS_INVALID));
           }
 
-          // 2. Chuyển cho AiRoutingService xử lý bẻ lái (URL & Header)
+          // BƯỚC 2. Chuyển cho AiRoutingService xử lý xác định URL và Header đích
           AiRouteConfig routeConfig = aiRoutingService.determineRoute(inRequest.getModel());
 
-          // Ghi lại URL đích vào thuộc tính trung gian để DynamicRoutingFilter (chạy sau)
-          // ghi đè lại
+          // Ghi lại URL đích vào thuộc tính trung gian để DynamicRoutingFilter (chạy sau
+          // cùng) đè lại URL thực tế
           exchange.getAttributes().put(CommonConstant.TARGET_AI_URI, routeConfig.getUri());
 
           // Ghi lại loại Provider để AiResponseTransformGatewayFilterFactory nhận diện
+          // được
           String aiProvider = inRequest.getModel().toLowerCase().startsWith(CommonConstant.GEMINI)
               ? CommonConstant.GEMINI
               : CommonConstant.OPENAI;
           exchange.getAttributes().put(CommonConstant.AI_PROVIDER, aiProvider);
 
-          // 3. Chuyển cho AiPayloadTransform xử lý biến đổi JSON (Bất đồng bộ do check
-          // Rate Limit)
+          // Trích xuất User ID từ Header
           String rawUserId = exchange.getRequest().getHeaders().getFirst("X-User-Id");
           String userId = (rawUserId != null) ? rawUserId : "anonymous";
           exchange.getAttributes().put("X-User-Id", userId);
 
+          // BƯỚC 3. Gọi AiPayloadTransformService để biến đổi JSON và tính toán token
           return aiPayloadTransformService.transformPayload(inRequest, userId)
               .flatMap(newBodyBytes -> {
 
-                // 4. Đóng gói lại Request với Header mới và Body mới
+                // BƯỚC 4. Đóng gói lại Request với Header mới và Body JSON đã biến đổi xong
                 ServerHttpRequest mutatedRequest =
                     serverHttpRequest.mutate().uri(routeConfig.getUri()).build();
 
+                // Tạo Decorator để bọc Request hiện tại, ghi đè lại nội dung Body và Header
                 ServerHttpRequestDecorator requestDecorator =
                     new ServerHttpRequestDecorator(mutatedRequest) {
                       @Override
                       public Flux<DataBuffer> getBody() {
+                        // Trả về Body mới
                         return Flux.just(exchange.getResponse().bufferFactory().wrap(newBodyBytes));
                       }
 
@@ -104,24 +116,29 @@ public class PromptTransformGatewayFilterFactory extends AbstractGatewayFilterFa
                       public HttpHeaders getHeaders() {
                         HttpHeaders headers = new HttpHeaders();
                         headers.putAll(super.getHeaders());
+                        // Đưa thêm các Header bắt buộc vào request
                         for (Map.Entry<String, String> entry : routeConfig.getHeaders()
                             .entrySet()) {
                           headers.set(entry.getKey(), entry.getValue());
                         }
+                        // Phải gỡ bỏ và tính toán lại CONTENT_LENGTH vì độ dài Body JSON đã thay
+                        // đổi
                         headers.remove(HttpHeaders.CONTENT_LENGTH);
                         headers.setContentLength(newBodyBytes.length);
                         return headers;
                       }
                     };
 
-                // Chạy tiếp bộ lọc với Request đã được tân trang hoàn toàn
+                // Chạy tiếp luồng Spring Cloud Gateway với Request mới
                 return chain.filter(exchange.mutate().request(requestDecorator).build());
               });
 
         } catch (Exception e) {
-          log.error(LogConstant.LOG_REQUEST_BODY_PARSE_FAIL, e.getMessage(), e);
+          // Bắt các lỗi trong quá trình Parsing
+          log.error(LogConstant.TransformLog.LOG_TRANSFORM_REQUEST_BODY_PARSE_FAIL, e.getMessage(),
+              e);
           return Mono.error(new ResponseStatusException(HttpStatus.BAD_REQUEST,
-              ErrorMessage.ERR_REQUEST_BODY_PARSE_FAIL));
+              ErrorMessage.GatewayError.ERR_TRANSFORM_REQUEST_BODY_PARSE_FAIL));
         }
       });
     };
